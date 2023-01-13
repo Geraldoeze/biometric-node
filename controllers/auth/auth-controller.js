@@ -29,11 +29,33 @@ transporter.verify((error, success) => {
 exports.signupAdmin = async (req, res, next) => {
   const db = await getDb();
   try {
-    const { email, password, name } = req.body;
-    console.log(email, name, password)
+    const { email, password, name, adminNumber } = req.body;
+    console.log(email, name, password);
+
+    //  adminNumber Verification
+
+    // const signUpCode = 100000 + Math.floor(Math.random() * 900000);
+    // const code = signUpCode.toString();
+    // await db.collection("signUpToken").insertOne({adminNumber: code})
+    // return res.json({message: "inserted"})
+
+    const signUpToken = await db
+      .collection("signUpToken")
+      .findOne({ adminNumber: adminNumber });
+    
+    if (!signUpToken) {
+      return res.status(400).json({message: "Admin Number is not correct. Contact Administrator!"})
+    }
+    await db.collection("signUpToken").deleteOne({ adminNumber: adminNumber});
+
     // Validate user input
     if (!(email && password && name)) {
-      res.status(403).json({message:"All input fields are required!", statusId: 'CHECK INPUTS'});
+      return res
+        .status(403)
+        .json({
+          message: "All input fields are required!",
+          statusId: "CHECK INPUTS",
+        });
     }
 
     // check if user already exist with email and username.
@@ -59,14 +81,13 @@ exports.signupAdmin = async (req, res, next) => {
         return res.status(400).json({ message, statusId: "FAILED!!" });
     }
 
-    // creating new userAdmin and resetCode
+    // creating new userAdmin
     const hashedPassword = await bcrypt.hash(password, 12);
-    const resetCode = 100000 + Math.floor(Math.random() * 900000);
+   
     const data = {
       email: email,
       password: hashedPassword,
       name: name,
-      resetCode: resetCode,
       emailVerified: false,
     };
     const result = await db.collection("userAdmin").insertOne(data);
@@ -122,7 +143,7 @@ const sendVerificationEmail = async ({ email }, { insertedId }, res) => {
       .insertOne(newVerification);
     console.log(saveUserVerify);
     const sendVerification = await transporter.sendMail(mailOptions);
-    console.log(sendVerification, 'Na here');
+    console.log(sendVerification, "Na here");
     res.status(202).json({
       statusId: "PENDING",
       message: "Verification email has been sent",
@@ -163,9 +184,9 @@ exports.verifyEmail = async (req, res, next) => {
         const deleteUser = await db
           .collection("userAdmin")
           .deleteOne({ _id: new ObjectId(userId) });
-          console.log(deleteUser, deleteUserVerify);
+        console.log(deleteUser, deleteUserVerify);
 
-        res.status(400).json({
+        return res.status(400).json({
           statusId: "EXPIRED LINK",
           message: "LInk has expired. Please sign up again.",
         });
@@ -182,14 +203,15 @@ exports.verifyEmail = async (req, res, next) => {
               { $set: { emailVerified: true } }
             );
           await db.collection("userVerify").deleteOne({ userId: userId });
+
           console.log(response);
-          res.json({
+          return res.json({
             statusId: "SUCCESS",
             message: "Email has been verified. Kindly Login",
           });
         } else {
           // existing record but incorrect verification details passed
-          res.status(401).json({
+          return res.status(401).json({
             statusId: "UNKNOWN",
             message: "Incorrect Verification Link, Check Inbox again",
           });
@@ -205,7 +227,6 @@ exports.verifyEmail = async (req, res, next) => {
   }
 };
 
-
 exports.loginAdmin = async (req, res, next) => {
   const db = getDb();
   try {
@@ -213,13 +234,20 @@ exports.loginAdmin = async (req, res, next) => {
 
     // Validate user input
     if (!(email && password)) {
-      res.status(400).json({message:"All input is required", statusId:'FAILED'});
+      return res
+        .status(400)
+        .json({ message: "All input is required", statusId: "FAILED" });
     }
     const adminContent = await db
       .collection("userAdmin")
       .findOne({ email: email });
     if (!adminContent) {
-      return res.status(400).json({message: "Incorrect email or password.", statusId:'BAD REQUEST'});
+      return res
+        .status(400)
+        .json({
+          message: "Incorrect email or password.",
+          statusId: "BAD REQUEST",
+        });
     }
 
     try {
@@ -247,14 +275,12 @@ exports.loginAdmin = async (req, res, next) => {
           process.env.JSONWEB_TOKEN,
           { expiresIn: "12h" }
         );
-        res
-          .status(200)
-          .json({
-            message: "LoginAdmin successful",
-            statusId: "SUCCESS!",
-            token: token,
-            userDetails: adminContent
-          });
+        return res.status(200).json({
+          message: "LoginAdmin successful",
+          statusId: "SUCCESS!",
+          token: token,
+          userDetails: adminContent,
+        });
       }
     } catch (err) {
       res.status(501).json({
@@ -264,7 +290,6 @@ exports.loginAdmin = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err);
-    
   }
 };
 
@@ -283,7 +308,7 @@ exports.forgotPassword = async (req, res, next) => {
 
     // check if userAdmin is verified
     if (!_regUser.emailVerified) {
-      res.status(400).json({
+      return res.status(400).json({
         statusId: "FAILED",
         message: "Email has not been Verified. Check your inbox!!!",
       });
@@ -293,7 +318,12 @@ exports.forgotPassword = async (req, res, next) => {
       sendResetEmail(_regUser, redirectUrl, res);
     }
   } else {
-    return res.status(400).json({message:"Email does not exist on any Account.", statusId:'TRY AGAIN'});
+    return res
+      .status(400)
+      .json({
+        message: "Email does not exist on any Account.",
+        statusId: "TRY AGAIN",
+      });
   }
 };
 
@@ -330,7 +360,7 @@ const sendResetEmail = async ({ _id, email }, redirectUrl, res) => {
       statusId: "FAILED",
       message: "Something went wrong. Please try again!!!",
     });
-  } 
+  }
   // store the hashed values in the passwordReset collection
   const passReset = {
     userId: id,
@@ -358,80 +388,86 @@ const sendResetEmail = async ({ _id, email }, redirectUrl, res) => {
   }
 };
 
-exports.resetPassword = async (req, res ) => {
-    const db = getDb();
-    let {userId, resetString, newPassword} = req.body;
-  console.log(resetString, newPassword, userId)
-    try {
-    const resetContent = await db.collection('passwordReset').findOne({userId: userId});
+exports.resetPassword = async (req, res) => {
+  const db = getDb();
+  let { userId, resetString, newPassword } = req.body;
+  console.log(resetString, newPassword, userId);
+  try {
+    const resetContent = await db
+      .collection("passwordReset")
+      .findOne({ userId: userId });
     if (resetContent) {
-        // password record exist
+      // password record exist
 
-        const {expiresAt} = resetContent.expiresAt;
-        const hashedResetString = resetContent.resetString
+      const { expiresAt } = resetContent.expiresAt;
+      const hashedResetString = resetContent.resetString;
 
-        // checking for expired reset string
-        if(expiresAt < Date.now()) {
+      // checking for expired reset string
+      if (expiresAt < Date.now()) {
+        const deleteReset = await db
+          .collection("passwordReset")
+          .deleteOne({ userId: userId });
+        console.log(deleteReset);
+        return res.status(401).json({
+          statusId: "UNSUCCESSFUL",
+          message: "Password reset link has expired!..",
+        });
+      } else {
+        // valid reset record exists so we validate
+        // first compare the hashed reset string
 
-            const deleteReset = await db.collection('passwordReset').deleteOne({userId: userId})
-            console.log(deleteReset)
-            res.status(401).json({
-                statusId: 'UNSUCCESSFUL',
-                message: 'Password reset link has expired!..'
-            })
-        } else {
-            // valid reset record exists so we validate
-            // first compare the hashed reset string
+        let hashedString;
+        try {
+          hashedString = await bcrypt.compare(resetString, hashedResetString);
+          if (hashedString) {
+            // strings matched
+            // hash password again
 
-            let hashedString;
+            const saltRounds = 10;
+            let newHashedPassword;
             try {
-                hashedString = await bcrypt.compare(resetString, hashedResetString);
-                if(hashedString) {
-                    // strings matched
-                    // hash password again
+              newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
+              const result = await db
+                .collection("userAdmin")
+                .updateOne(
+                  { _id: new ObjectId(userId) },
+                  { $set: { password: newHashedPassword } }
+                );
 
-                    const saltRounds = 10;
-                    let newHashedPassword;
-                    try {
-                    newHashedPassword = await bcrypt.hash(newPassword, saltRounds)
-                    const result = await db.collection('userAdmin').updateOne(
-                        { _id: new ObjectId(userId) },
-                        { $set: { password: newHashedPassword } }
-                    );
-            
-                    // update complete
-                    await db.collection('passwordReset').deleteOne({userId: userId})
+              // update complete
+              await db
+                .collection("passwordReset")
+                .deleteOne({ userId: userId });
 
-                    // both user record and reset record updated..
-                    res.status(200).json({
-                        statusId: 'SUCCESS',
-                        message: 'Password has been reset successfully!.. Kindly Log In.'
-                    })
-                    console.log(result);
-                    } catch (err) {
-                        res.status(501).json({
-                            statusId: 'STRANGE',
-                            message: 'An unknown Error occured at the Server.!'
-                        })
-                    }
-                    
-                } else {
-                    // Existing record but incorrect reset string passed
-                    res.status(401).json({
-                        statusId: 'ERROR',
-                        message: 'Invalid password reset details passed.'
-                    })
-                }
-
+              // both user record and reset record updated..
+              res.status(200).json({
+                statusId: "SUCCESS",
+                message:
+                  "Password has been reset successfully!.. Kindly Log In.",
+              });
+              console.log(result);
             } catch (err) {
-
+              res.status(501).json({
+                statusId: "STRANGE",
+                message: "An unknown Error occured at the Server.!",
+              });
             }
-
-        }
+          } else {
+            // Existing record but incorrect reset string passed
+            return res.status(401).json({
+              statusId: "ERROR",
+              message: "Invalid password reset details passed.",
+            });
+          }
+        } catch (err) {}
+      }
     } else {
-        return res.status(400).json({message: 'Password reset request not found.', statusId: 'STRANGE'});
+      return res
+        .status(400)
+        .json({
+          message: "Password reset request not found.",
+          statusId: "STRANGE",
+        });
     }
-} catch(err) {
-
-}
+  } catch (err) {}
 };

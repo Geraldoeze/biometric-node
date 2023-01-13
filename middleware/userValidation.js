@@ -1,15 +1,34 @@
+exports.validateDepartment = (req, res, next) => {
+    let data = req.body;
+
+    const data_Types = ['department', 'courses']
+
+    if (data?.department?.length < 2) {
+        return res.status(400).json({message: "Department is too short", statusId:'FAILED'})
+    }
+
+    if (data?.courses?.length < 1) {
+        return res.status(400).json({message: "Courses error", statusId:'FAILED'})
+
+    }
 
 
+    req.body = fieldFilters(data_Types, data)
+    next();
+}
+
+
+// 
 exports.validateUserUpdate = (req, res, next) => {
     let data = req.body;
 
-    const data_Types = ['firstName', 'lastName', 'email', 'gender', 'id', 'studentId', 'origin', 'department', 'courses', 'address', 'atClass']
+    const data_Types = ['firstName', 'lastName', 'email', 'gender', 'id', 'studentId', 'origin', 'department', 'courses', 'address', 'contact']
 
-    if (data?.first_Name?.length < 2) {
+    if (data?.firstName?.length < 2) {
         return res.status(400).json({message: "First Name is too short", statusId:'FAILED'})
     }
 
-    if (data?.last_Name?.length < 2) {
+    if (data?.lastName?.length < 2) {
         return res.status(400).json({message: "Last Name is too short", statusId:'FAILED'})
     }
 
@@ -45,15 +64,15 @@ exports.validateUserUpdate = (req, res, next) => {
         return res.status(400).json({message: "Address is too short", statusId:'FAILED'})
     }
     
-    if (!data?.atClass == Number) {
-        return res.status(400).json({message: "Class attendance must be a Number", statusId:'FAILED'})
+    if (!data?.contact) {
+        return res.status(400).json({message: "Contact  must be a provided", statusId:'FAILED'})
     }
     // if (data?.finger_Token?.length < 5) {
     //     return res.status(400).json({message: "Token is too short", statusId:'FAILED'})
     // }
 
     req.body = fieldFilters(data_Types, data)
-    next();
+    next(); 
 }
 
 
