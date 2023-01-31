@@ -34,9 +34,9 @@ exports.signupAdmin = async (req, res, next) => {
 
     //  adminNumber Verification
 
-    // const signUpCode = 100000 + Math.floor(Math.random() * 900000);
-    // const code = signUpCode.toString();
-    // await db.collection("signUpToken").insertOne({adminNumber: code})
+    const signUpCode = 100000 + Math.floor(Math.random() * 900000);
+    const code = signUpCode.toString();
+    await db.collection("signUpToken").insertOne({adminNumber: code})
     // return res.json({message: "inserted"})
 
     const signUpToken = await db
@@ -92,6 +92,8 @@ exports.signupAdmin = async (req, res, next) => {
     };
     const result = await db.collection("userAdmin").insertOne(data);
     console.log(result);
+
+    // send verification link to
     sendVerificationEmail(data, result, res);
   } catch (err) {
     console.log("Something went wrong. Please try again");
@@ -110,7 +112,7 @@ const sendVerificationEmail = async ({ email }, { insertedId }, res) => {
 
   // mail options
   const mailOptions = {
-    from: "egerald@gmail.com", // sender address
+    from: "corporateacc701@gmail.com", // sender address
     to: email, // list of receivers
     subject: "Verify Your Email", // Subject line
     html: `<p>Please verify your email address to complete the signup process and login into your account.</p>
@@ -340,7 +342,7 @@ const sendResetEmail = async ({ _id, email }, redirectUrl, res) => {
 
   // redirectUrl is gotten from the frontend, sent along with body
   const mailOptions = {
-    from: "egerald@gmail.com", // sender address
+    from: "corporateacc701@gmail.com", // sender address
     to: email, // list of receivers
     subject: "Password Reset", // Subject line
     html: `<p>We heard you lost the password</p>

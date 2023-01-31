@@ -22,7 +22,9 @@ exports.validateDepartment = (req, res, next) => {
 exports.validateUserUpdate = (req, res, next) => {
     let data = req.body;
 
-    const data_Types = ['firstName', 'lastName', 'email', 'gender', 'id', 'studentId', 'origin', 'department', 'courses', 'address', 'contact']
+    const data_Types = ['firstName', 'lastName', 'email', 'gender', 'id', 'origin', 'department',
+                 'courses', 'address', 'contact', 'ninNumber', 'country', 'levelId', 'matric'
+    ]
 
     if (data?.firstName?.length < 2) {
         return res.status(400).json({message: "First Name is too short", statusId:'FAILED'})
@@ -44,8 +46,8 @@ exports.validateUserUpdate = (req, res, next) => {
         return res.status(400).json({message: "User Id not provided", statusId:'FAILED'})
     }
 
-    if (!data?.studentId == Number) {
-        return res.status(400).json({message: "Student Id not provided", statusId:'FAILED'})
+    if (!!(data?.matric)) {
+        return res.status(400).json({message: "matric  not provided", statusId:'FAILED'})
     }
 
     if (data?.origin?.length < 3) {
@@ -67,9 +69,7 @@ exports.validateUserUpdate = (req, res, next) => {
     if (!data?.contact) {
         return res.status(400).json({message: "Contact  must be a provided", statusId:'FAILED'})
     }
-    // if (data?.finger_Token?.length < 5) {
-    //     return res.status(400).json({message: "Token is too short", statusId:'FAILED'})
-    // }
+    
 
     req.body = fieldFilters(data_Types, data)
     next(); 

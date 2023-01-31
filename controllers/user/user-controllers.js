@@ -21,44 +21,35 @@ exports.getAllUsers = async (req, res, next) => {
 exports.createUser = async (req, res, next) => {
   const db = await getDb();
 
-  // Verify all User inputs
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    console.log(errors);
-    return res.status(422).json({
-      errors: errors.array(),
-      message: "Check your Inputs. Try Again",
-      statusId: "INVALID INPUTS",
-    });
-  }
-  const RandomId = 100000 + Math.floor(Math.random() * 900000);
-  const studentId = RandomId;
-
+  // const RandomId = 100000 + Math.floor(Math.random() * 900000);
+  
+  
   try {
     const {
       firstName,
       lastName,
       email,
       gender,
-
       id,
+      matric,
       origin,
       department,
       courses,
       address,
       contact,
+      levelId, ninNumber, country
     } = req.body;
 
     //   Check if RegId  exist
     const _regUser = await db
       .collection("users")
-      .findOne({ studentId: studentId });
+      .findOne({ matric: matric });
 
     if (_regUser) {
       //  A user exists with this RegId,
       return res.status(400).json({
-        statusId: "STUDENT ID",
-        message: "Student ID exists already, change it or Try again. !!!",
+        statusId: "Matric No",
+        message: "Matric No exists already, change it or Try again. !!!",
       });
     }
 
@@ -69,12 +60,12 @@ exports.createUser = async (req, res, next) => {
       email,
       gender,
       id,
-      studentId,
+      matric,
       origin,
       department,
       courses,
       address,
-      contact
+      contact, levelId, ninNumber, country
     );
     const saveUserData = await UserData.saveToDB();
 
