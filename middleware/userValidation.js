@@ -46,9 +46,9 @@ exports.validateUserUpdate = (req, res, next) => {
         return res.status(400).json({message: "User Id not provided", statusId:'FAILED'})
     }
 
-    if (!!(data?.matric)) {
-        return res.status(400).json({message: "matric  not provided", statusId:'FAILED'})
-    }
+    // if (!!(data?.matric)) {
+    //     return res.status(400).json({message: "matric  not provided", statusId:'FAILED'})
+    // }
 
     if (data?.origin?.length < 3) {
         return res.status(400).json({message: "Origin not defined", statusId:'FAILED'})
