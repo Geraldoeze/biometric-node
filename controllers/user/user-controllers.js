@@ -64,6 +64,7 @@ exports.createUser = async (req, res, next) => {
       address,
       contact, levelId, ninNumber, country, fingerPrint
     );
+    
     const saveUserData = await UserData.saveToDB();
 
     res.status(201).json({ message: "Users Created", response: saveUserData });

@@ -20,7 +20,7 @@ class Users {
         this.levelId = levelId;
         this.ninNumber = ninNumber;
         this.country = country;
-        this.fingerPrint
+        this.fingerPrint = fingerPrint;
     }
 
 
