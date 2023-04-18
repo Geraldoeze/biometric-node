@@ -23,7 +23,7 @@ exports.validateUserUpdate = (req, res, next) => {
     let data = req.body;
 
     const data_Types = ['firstName', 'lastName', 'email', 'gender', 'id', 'origin', 'department',
-                 'courses', 'address', 'contact', 'ninNumber', 'country', 'levelId', 'matric'
+                 'courses', 'address', 'contact', 'ninNumber', 'country', 'levelId', 'matric', 'fingerPrint'
     ]
 
     if (data?.firstName?.length < 2) {

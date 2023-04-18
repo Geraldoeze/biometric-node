@@ -20,10 +20,7 @@ exports.getAllUsers = async (req, res, next) => {
 
 exports.createUser = async (req, res, next) => {
   const db = await getDb();
-
   // const RandomId = 100000 + Math.floor(Math.random() * 900000);
-  
-  
   try {
     const {
       firstName,
@@ -37,7 +34,7 @@ exports.createUser = async (req, res, next) => {
       courses,
       address,
       contact,
-      levelId, ninNumber, country
+      levelId, ninNumber, country, fingerPrint
     } = req.body;
 
     //   Check if RegId  exist
@@ -65,7 +62,7 @@ exports.createUser = async (req, res, next) => {
       department,
       courses,
       address,
-      contact, levelId, ninNumber, country
+      contact, levelId, ninNumber, country, fingerPrint
     );
     const saveUserData = await UserData.saveToDB();
 
