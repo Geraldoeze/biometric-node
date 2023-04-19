@@ -39,14 +39,14 @@ exports.signupAdmin = async (req, res, next) => {
     await db.collection("signUpToken").insertOne({adminNumber: code})
     // return res.json({message: "inserted"})
 
-    const signUpToken = await db
-      .collection("signUpToken")
-      .findOne({ adminNumber: adminNumber });
+    // const signUpToken = await db
+    //   .collection("signUpToken")
+    //   .findOne({ adminNumber: adminNumber });
     
-    if (!signUpToken) {
-      return res.status(400).json({message: "Admin Number is not correct. Contact Administrator!"})
-    }
-    await db.collection("signUpToken").deleteOne({ adminNumber: adminNumber});
+    // if (!signUpToken) {
+    //   return res.status(400).json({message: "Admin Number is not correct. Contact Administrator!"})
+    // }
+    // await db.collection("signUpToken").deleteOne({ adminNumber: adminNumber});
 
     // Validate user input
     if (!(email && password && name)) {
@@ -94,7 +94,11 @@ exports.signupAdmin = async (req, res, next) => {
     console.log(result);
 
     // send verification link to
-    sendVerificationEmail(data, result, res);
+    // sendVerificationEmail(data, result, res);
+    return res.json({
+      statusId: "SUCCESS",
+      message: "User has been created. Kindly Login",
+    });
   } catch (err) {
     console.log("Something went wrong. Please try again");
   }
@@ -254,17 +258,19 @@ exports.loginAdmin = async (req, res, next) => {
 
     try {
       // check if user is verified
-      if (!adminContent.emailVerified) {
-        return res.status(400).json({
-          message: "Email has not been Verified!. Check your Inbox",
-          statusId: "FAILED",
-        });
-      } else {
-        // comparing password
-        const isPasswordCorrect = await bcrypt.compare(
-          password,
-          adminContent.password
-        );
+      // if (!adminContent.emailVerified) {
+      //   return res.status(400).json({
+      //     message: "Email has not been Verified!. Check your Inbox",
+      //     statusId: "FAILED",
+      //   });
+      // }
+      //  else {
+      //   // comparing password
+      //   const isPasswordCorrect = await bcrypt.compare(
+      //     password,
+      //     adminContent.password
+      //   );
+      const isPasswordCorrect = await bcrypt.compare(password, adminContent.password)
         if (!isPasswordCorrect)
           return res.status(400).json({
             message: "Incorrect Password!!",
@@ -283,7 +289,7 @@ exports.loginAdmin = async (req, res, next) => {
           token: token,
           userDetails: adminContent,
         });
-      }
+      // }
     } catch (err) {
       res.status(501).json({
         message: "Error Verifying User !!",
