@@ -34,9 +34,9 @@ exports.signupAdmin = async (req, res, next) => {
 
     //  adminNumber Verification
 
-    const signUpCode = 100000 + Math.floor(Math.random() * 900000);
-    const code = signUpCode.toString();
-    await db.collection("signUpToken").insertOne({adminNumber: code})
+    // const signUpCode = 100000 + Math.floor(Math.random() * 900000);
+    // const code = signUpCode.toString();
+    // await db.collection("signUpToken").insertOne({adminNumber: code})
     // return res.json({message: "inserted"})
 
     // const signUpToken = await db
