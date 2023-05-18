@@ -85,6 +85,32 @@ exports.findUserbyId = async (req, res, next) => {
   }
 };
 
+exports.findUserbyId = async (req, res, next) => {
+  const userId = req.params.uid;
+
+  try {
+    // find user from db
+    const user = await User.findById(userId);
+    res.status(200).json({ message: "User gotten", response: [user] });
+  } catch (err) {
+    res.status(501).json({ message: "Getting Users Failed.!! " });
+  }
+};
+
+//  testing new code here
+exports.findUserbyMatric = async (req, res, next) => {
+  const {matrixId} = req.body
+console.log(matrixId)
+  // try {
+  //   // find user from db
+  //   const user = await User.find({matric: matrixId});
+  //   res.status(200).json({ message: "User gotten", response: [user] });
+  // } catch (err) {
+  //   res.status(501).json({ message: "Getting Users Failed.!! " });
+  // }
+};
+
+
 exports.getAllAttendance = async (req, res, next) => {
   const db = await getDb();
   try {

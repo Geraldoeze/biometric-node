@@ -133,85 +133,63 @@ exports.deleteUser = async (req, res, next) => {
 
 exports.getUserbyId = async (req, res, next) => {
   const db = getDb();
-
-  const userId = req.params.uid;
-  const { department, course } = req.body;
+  const attId = req.params.uid;
+  const { course, matricId } = req.body;
 
   // first check if userId exist on our db
-  const checkUser = await db
-    .collection("users")
-    .findOne({ _id: new mongodb.ObjectId(userId) });
+  const checkUser = await db.collection("users").findOne({ matric: matricId });
 
   if (!checkUser) {
     return res.status(400).json({
-      message: " User Id does not exists.!",
+      message: " Matric does not exists.!",
       statusId: "UNSUCCESSFUL",
     });
   }
-
-  // Second we check if user registered the department
-  if (checkUser?.department === department) {
-    // He/She has this department registered in db
-    // we update the attendance db to have this user details
-
-    try {
-      const attendanceList = await db
-        .collection("attendance")
-        .findOne({ course: course });
-      if (!attendanceList) {
-        return res
-          .status(400)
-          .json({
-            message: "This course is not registered on the database",
-            statusId: "COURSE ERROR",
-          });
-      }
-
-      // Check if the user has taken attendance already
-
-      const checkUse = await db
-        .collection("attendance")
-        .find({ _id: attendanceList._id, attendance: { $in: [checkUser] } })
-        .count();
-      if (checkUse >= 1) {
-        return res.status(400).json({
-          message: "Student has already taken attendance",
-          statusId: "WRONG",
-        });
-      }
-      try {
-        const id = attendanceList._id;
-        const attendanceUpdate = [...attendanceList.attendance, checkUser];
-        await db
-          .collection("attendance")
-          .updateOne(
-            { _id: new mongodb.ObjectId(id) },
-            { $set: { attendance: attendanceUpdate } }
-          );
-        
-        res.status(200).json({
-          message: "User Attendance Recorded",
-          statusId: "CONFIRMED",
-          response: checkUser,
-        });
-      } catch (err) {
-        res.status(400).json({
-          message: "Error while recording attendance",
-          statusId: "FAILED",
-        });
-      }
-
-     
-    } catch (err) {
-      console.log(err);
+  try {
+    const attendanceList = await db
+      .collection("attendance")
+      .findOne({ _id: new mongodb.ObjectId(attId) });
+    if (!attendanceList) {
+      return res.status(400).json({
+        message: "This attendance is not registered on the database",
+        statusId: "COURSE ERROR",
+      });
     }
-  } else {
-    return res
-      .status(400)
-      .json({
-        message: "Student did not register this department",
+
+    // Check if the user has taken attendance already
+
+    const checkUse = await db
+      .collection("attendance")
+      .find({ _id: attendanceList._id, attendance: { $in: [checkUser] } })
+      .count();
+    if (checkUse >= 1) {
+      return res.status(400).json({
+        message: "Student has already taken attendance",
         statusId: "WRONG",
       });
+    }
+    try {
+      const id = attendanceList._id;
+      const attendanceUpdate = [...attendanceList.attendance, checkUser];
+      await db
+        .collection("attendance")
+        .updateOne(
+          { _id: new mongodb.ObjectId(id) },
+          { $set: { attendance: attendanceUpdate } }
+        );
+
+      res.status(200).json({
+        message: "User Attendance Recorded",
+        statusId: "CONFIRMED",
+        response: checkUser,
+      });
+    } catch (err) {
+      res.status(400).json({
+        message: "Error while recording attendance",
+        statusId: "FAILED",
+      });
+    }
+  } catch (err) {
+    console.log(err);
   }
 };
- 

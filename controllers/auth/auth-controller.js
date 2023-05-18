@@ -234,10 +234,12 @@ exports.verifyEmail = async (req, res, next) => {
 };
 
 exports.loginAdmin = async (req, res, next) => {
+
+
   const db = getDb();
   try {
     const { email, password } = req.body;
-
+console.log(email, password)
     // Validate user input
     if (!(email && password)) {
       return res

@@ -11,6 +11,8 @@ router.get("/getUser/:uid", userControllers.findUserbyId);
 
 router.get("/attendanceList", userControllers.getAllAttendance);
 
+router.post("/fetch", userControllers.findUserbyMatric);
+
 router.post("/create", validateUserUpdate, userControllers.createUser)
 
 router.post("/attendance", userControllers.createAttendance);
