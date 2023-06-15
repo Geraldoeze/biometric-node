@@ -20,11 +20,14 @@ require("dotenv").config();
 app.use(cors());
 app.use(bodyParser.json());
 
+
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use("/users", userRoutes);
 
-
+app.use('/', (req, res) => {
+    res.send('Server is running')
+})
 
 mongoConnect(() => {
     app.listen(PORT);
